@@ -27,12 +27,17 @@ class BreastCancerDataset(Dataset):
     def __init__(self, dataframe: pd.DataFrame, image_dir: str, image_size: int = 224):
         self.dataframe = dataframe.reset_index(drop=True)
         self.image_dir = image_dir
-
-        # TODO: build a transform pipeline that:
-        # 1) resizes to (image_size, image_size)
-        # 2) converts to tensor
-        # 3) normalizes using ImageNet mean/std
-        self.transform = None
+        
+        # FINISHED: build a transform pipeline that:
+        IMAGENET_MEAN = [0.485, 0.456, 0.406]
+        IMAGENET_STD  = [0.229, 0.224, 0.225]
+        transform_pipeline = transforms.Compose(
+            transforms.resize(image_size, image_size),  # 1) resizes to (image_size, image_size)
+            transforms.ToTensor(),                      # 2) converts to tensor
+            transforms.Normalize(mean = IMAGENET_MEAN,  # 3) normalizes using ImageNet mean/std
+                                 std  = IMAGENET_STD )   
+        )        
+        self.transform = transform_pipeline
 
     def __len__(self) -> int:
         return len(self.dataframe)
@@ -42,12 +47,14 @@ class BreastCancerDataset(Dataset):
         case_id = row['case_id']
         image_path = os.path.join(self.image_dir, case_id, 'image.png')
 
-        # TODO: load the image from image_path and convert it to RGB
-        image = None
+        # FINISHED: load the image from image_path and convert it to RGB
+        image = Image.open(image_path)
+        image = image.convert('RGB')
 
-        # TODO: apply self.transform to the image
+        # FINISHED: apply self.transform to the image
+        image = self.transform(image)
 
-        # TODO: convert row['label_num'] to a float tensor
-        label = None
+        # FINISEHD: convert row['label_num'] to a float tensor
+        label = torch.tensor(row['label_num'])
 
         return image, label, case_id
