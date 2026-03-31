@@ -26,13 +26,24 @@ class FocalLoss(nn.Module):
         self.gamma = gamma
 
     def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        # TODO:
-        # 1) compute elementwise BCE with logits (no reduction)
+        
+        # FINISHED:
+        
         # 2) compute probabilities using sigmoid
+        probabilities = torch.sigmoid(logits)
+        
+        # 1) compute elementwise BCE with logits (no reduction)
+        elementwise_BCE = -(targets * torch.log(probabilities) + (1 - targets) * torch.log(1 - probabilities))
+        
         # 3) compute pt
+        pt = torch.where(targets == 1, probabilities, 1 - probabilities)
+        
         # 4) assign alpha based on class weights
-        # 5) compute focal loss and return the mean
-        raise NotImplementedError
+        alpha = torch.where(targets == 1, self.minority_weight, self.majority_weight)
+
+        # 5) sompute focal loss and return the mean
+        focal_loss = alpha * (1 - pt) ** self.gamma * elementwise_BCE
+        return focal_loss.mean()
 
 
 def build_criterion(loss_name: str, minority_weight: float, majority_weight: float, gamma: float):

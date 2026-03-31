@@ -93,10 +93,10 @@ def make_loaders(args, train_df, val_df, test_df):
     val_ds = BreastCancerDataset(val_df, args.image_dir, args.image_size)
     test_ds = BreastCancerDataset(test_df, args.image_dir, args.image_size)
 
-    # TODO: create train, validation, and test dataloaders
-    train_loader = None
-    val_loader = None
-    test_loader = None
+    # FINISHED: create train, validation, and test dataloaders
+    train_loader = DataLoader(train_ds, shuffle = True)
+    val_loader = DataLoader(val_ds, shuffle = True)
+    test_loader = DataLoader(test_ds, shuffle = True)
     return train_loader, val_loader, test_loader
 
 
