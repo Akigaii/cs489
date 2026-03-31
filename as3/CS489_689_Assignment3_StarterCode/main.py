@@ -26,8 +26,17 @@ from train import build_criterion, run_one_epoch
 
 
 def set_seed(seed: int):
-    # TODO: set the seeds for random, numpy, torch, and torch.cuda
-    pass
+    
+    # FINISHED: set the seeds for random, numpy, torch, and torch.cuda
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    
 
 
 def prepare_dataframe(csv_path: str, positive_label: str) -> pd.DataFrame:
@@ -36,17 +45,47 @@ def prepare_dataframe(csv_path: str, positive_label: str) -> pd.DataFrame:
     if not required_cols.issubset(df.columns):
         raise ValueError(f'CSV must contain columns: {required_cols}')
 
-    # TODO: create a numeric column called label_num
+    # FINISHED: create a numeric column called label_num
     # positive_label should map to 1, all others to 0
+    df['label_num'] = np.where(df['tumor_type'] == positive_label, 1, 0)
+ 
     return df
 
 
 def split_dataframe(df, train_ratio, val_ratio, test_ratio, seed, stratified):
-    # TODO:
+    
+    # FINISHED (stratified still needs to be done):
+    
     # 1) verify the ratios sum to 1.0
+    if train_ratio + val_ratio + test_ratio != 1.0:
+        raise ValueError("Ratios do not add up to 1.0.")
+        
     # 2) split into train and temp
+    df = df.sample(frac = 1, random_state = seed).reset_index(drop = True)
+    X = df['case_id']
+    y = df['label_num']
+    
+    X_train, X_temp, y_train, y_temp = train_test_split(
+        X, y, 
+        test_size = train_ratio, 
+        random_state = seed
+        # stratify = stratified
+    )
+    
     # 3) split temp into validation and test
-    raise NotImplementedError
+    X_val, X_test, y_val, y_test = train_test_split(
+        X_temp, y_temp,
+        test_size = 1 - (val_ratio / (val_ratio + test_ratio)),
+        random_state = seed
+        # stratify=stratify_temp
+    )
+    
+    return X_train, X_val, X_test, y_train, y_val, y_test
+    
+    
+    
+    
+
 
 
 def make_loaders(args, train_df, val_df, test_df):
