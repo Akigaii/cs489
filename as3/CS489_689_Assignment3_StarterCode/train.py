@@ -48,6 +48,10 @@ class FocalLoss(nn.Module):
 
 def build_criterion(loss_name: str, minority_weight: float, majority_weight: float, gamma: float):
     # TODO:
+    # if loss_name == "bce":
+    #     return nn.BCEWithLogitsLoss()
+    # elif loss_name == "wbce":
+    #     return nn.BCEWithLogitsLoss(pos_weight = )
     # - bce  -> BCEWithLogitsLoss()
     # - wbce -> BCEWithLogitsLoss(pos_weight=...)
     # - focal -> FocalLoss(...)

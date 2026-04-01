@@ -25,13 +25,29 @@ def compute_metrics(y_true: np.ndarray, y_prob: np.ndarray, threshold: float = 0
     y_true = np.asarray(y_true).astype(int)
     y_prob = np.asarray(y_prob).astype(float)
 
-    # TODO: convert probabilities to predicted labels using threshold
-    y_pred = None
+    # FINSIHED: convert probabilities to predicted labels using threshold
+    y_pred = np.where(y_prob >= threshold, 1, 0)
 
-    # TODO: compute TN, FP, FN, TP using confusion_matrix
-    # TODO: compute specificity
+    # FINISHED: compute TN, FP, FN, TP using confusion_matrix
+    matrix = confusion_matrix(y_true, y_pred)
+    TN = matrix[0, 0]
+    FP = matrix[0, 1]
+    FN = matrix[1, 0]
+    TP = matrix[1, 1]
+    
+    # FINISHED: compute specificity
+    specificity = TN / (TN + FP)
 
-    # TODO: return a dictionary with these keys:
+    # FINISHED: return a dictionary with these keys:
     # accuracy, precision, recall, f1, auroc, auprc, specificity
-    metrics = {}
+    metrics = {
+        "accuracy": accuracy_score(y_true, y_pred),
+        "precision": precision_score(y_true, y_pred),
+        "recall": recall_score(y_true, y_pred),
+        "f1": f1_score(y_true, y_pred),
+        "auroc": roc_auc_score(y_true, y_prob),
+        "auprc": average_precision_score(y_true, y_prob),
+        "specificity": specificity
+    }
+    
     return metrics
