@@ -47,15 +47,19 @@ class FocalLoss(nn.Module):
 
 
 def build_criterion(loss_name: str, minority_weight: float, majority_weight: float, gamma: float):
-    # TODO:
-    # if loss_name == "bce":
-    #     return nn.BCEWithLogitsLoss()
-    # elif loss_name == "wbce":
-    #     return nn.BCEWithLogitsLoss(pos_weight = )
+    # FINISHED:
     # - bce  -> BCEWithLogitsLoss()
     # - wbce -> BCEWithLogitsLoss(pos_weight=...)
     # - focal -> FocalLoss(...)
-    raise NotImplementedError
+    if loss_name == "bce":
+        return nn.BCEWithLogitsLoss()
+    elif loss_name == "wbce":
+        return nn.BCEWithLogitsLoss(pos_weight = torch.tensor([minority_weight]))
+    elif loss_name == "focal":
+        return FocalLoss(minority_weight, majority_weight, gamma)
+    else:
+        raise Exception("Invalid loss_name")
+
 
 
 def run_one_epoch(model, loader, criterion, optimizer, device, train: bool = True) -> Tuple[float, Dict[str, float]]:
@@ -73,17 +77,24 @@ def run_one_epoch(model, loader, criterion, optimizer, device, train: bool = Tru
             images = images.to(device)
             targets = targets.to(device)
 
-            # TODO: forward pass and loss computation
-            logits = None
-            loss = None
+            # FINISHED: forward pass and loss computation
+            logits = model(images).squeeze(1)
+            loss = criterion(logits, targets)
 
             if train:
-                # TODO: zero gradients, backpropagate, and update weights
-                pass
+                # FINISHED: zero gradients, backpropagate, and update weights
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
-            # TODO: convert logits to probabilities and store probabilities/targets
+            # FINISHED: convert logits to probabilities and store probabilities/targets
+            probs = torch.sigmoid(logits)
+            probs = probs.detach().numpy()
+            all_probs.extend(probs)
+            all_targets.extend(targets.numpy())
+            losses.append(loss.item())
 
-    # TODO: compute mean loss and metric dictionary
-    mean_loss = 0.0
-    metrics = {}
+    # FINISHED: compute mean loss and metric dictionary
+    mean_loss = sum(losses) / len(losses)
+    metrics = compute_metrics(all_targets, all_probs)
     return mean_loss, metrics
