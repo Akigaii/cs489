@@ -31,12 +31,12 @@ class BreastCancerDataset(Dataset):
         # FINISHED: build a transform pipeline that:
         IMAGENET_MEAN = [0.485, 0.456, 0.406]
         IMAGENET_STD  = [0.229, 0.224, 0.225]
-        transform_pipeline = transforms.Compose(
-            transforms.resize(image_size, image_size),  # 1) resizes to (image_size, image_size)
-            transforms.ToTensor(),                      # 2) converts to tensor
-            transforms.Normalize(mean = IMAGENET_MEAN,  # 3) normalizes using ImageNet mean/std
+        transform_pipeline = transforms.Compose([
+            transforms.Resize((image_size, image_size)), # 1) resizes to (image_size, image_size)
+            transforms.ToTensor(),                       # 2) converts to tensor
+            transforms.Normalize(mean = IMAGENET_MEAN,   # 3) normalizes using ImageNet mean/std
                                  std  = IMAGENET_STD )   
-        )        
+        ])        
         self.transform = transform_pipeline
 
     def __len__(self) -> int:

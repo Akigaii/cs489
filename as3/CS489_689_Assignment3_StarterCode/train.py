@@ -75,7 +75,7 @@ def run_one_epoch(model, loader, criterion, optimizer, device, train: bool = Tru
     with torch.set_grad_enabled(train):
         for images, targets, _ in loader:
             images = images.to(device)
-            targets = targets.to(device)
+            targets = targets.float().to(device)
 
             # FINISHED: forward pass and loss computation
             logits = model(images).squeeze(1)

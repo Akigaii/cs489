@@ -95,8 +95,8 @@ def make_loaders(args, train_df, val_df, test_df):
 
     # FINISHED: create train, validation, and test dataloaders
     train_loader = DataLoader(train_ds, batch_size = args.batch_size, shuffle = True, num_workers = args.num_workers)
-    val_loader = DataLoader(val_ds, batch_size = args.batch_size, shuffle = True, num_workers = args.num_workers)
-    test_loader = DataLoader(test_ds, batch_size = args.batch_size, shuffle = True, num_workers = args.num_workers)
+    val_loader = DataLoader(val_ds, batch_size = args.batch_size, shuffle = False, num_workers = args.num_workers)
+    test_loader = DataLoader(test_ds, batch_size = args.batch_size, shuffle = False, num_workers = args.num_workers)
     return train_loader, val_loader, test_loader
 
 
@@ -109,7 +109,7 @@ def main():
         device = torch.device("cuda")
     else:
         device = torch.device("cpu")
-    
+    print(f"Running on {device}")
 
     # FINISHED: read the CSV and prepare label_num
     df = prepare_dataframe(args.csv_path, args.positive_label)
@@ -125,8 +125,8 @@ def main():
 
     # FINISHED: build model, criterion, and optimizer
     model = build_model(args.model_name).to(device)
-    criterion = build_criterion(args.loss_name, args.minority_weight, args.majority_weight, args.gamma)
-    optimizer = torch.optim.Adam(
+    criterion = build_criterion(args.loss_name, args.minority_weight, args.majority_weight, args.gamma).to(device)
+    optimizer = Adam(
         model.parameters(),
         lr = args.lr,
         weight_decay = args.weight_decay
@@ -134,8 +134,8 @@ def main():
     
     # FINISHED: create an experiment folder name
     # Suggested format: M1_bce or M2_focal_w3.0
-    os.makedirs("M1_bce", exist_ok = True)
-    os.makedirs("M2_focal_w3.0", exist_ok = True)
+    exper_folder = f"{args.model_name}_{args.loss_name}"
+    os.makedirs(exper_folder, exist_ok = True)
     
     best_val_auroc = -1.0
     best_state = None
@@ -143,18 +143,64 @@ def main():
     history = []
 
     for epoch in range(1, args.epochs + 1):
-        # TODO: run one training epoch and one validation epoch
+        # FINISHED: run one training epoch and one validation epoch
+        train_mean_loss, train_metrics = run_one_epoch(model, train_loader, criterion, optimizer, device, True)
+        val_mean_loss, val_metrics     = run_one_epoch(model, val_loader, criterion, optimizer, device, False)
+        print(f"\nEpoch {epoch} finished.")
+        print(f"    - train_mean_loss = {train_mean_loss}")
+        print(f"    - train_auroc     = {train_metrics['auroc']}")
+        print(f"    - val_mean_loss   = {val_mean_loss}")
+        print(f"    - val_auroc       = {val_metrics['auroc']}")
+        
+        # FINISHED: store epoch metrics in history
+        epoch_history = {}
+        epoch_history["train_mean_loss"] = train_mean_loss
+        epoch_history["train_metrics"]   = train_metrics
+        epoch_history["val_mean_loss"]   = val_mean_loss
+        epoch_history["val_metrics"]     = val_metrics
+        history.append(epoch_history)
+        
 
-        # TODO: store epoch metrics in history
+        # FINISHED: update best model based on validation AUROC
+        current_auroc = val_metrics["auroc"]
+        if current_auroc > best_val_auroc:
+            print("\nNew best model found!")
+            # print(f"Prev AUROC: {best_val_auroc},   New AUROC: {current_auroc}")
+            torch.save(model.state_dict(), os.path.join(exper_folder, f"{exper_folder}_best_model"))
+            best_val_auroc = current_auroc
+            patience_counter = 0
+        else:
+            patience_counter += 1
+            
+        # FINISHED: apply early stopping
+        if patience_counter >= args.patience:
+            break
 
-        # TODO: update best model based on validation AUROC
-        # TODO: apply early stopping
-        pass
-
-    # TODO: load the best model state
-    # TODO: evaluate on the test set
-    # TODO: save best_model.pt, history.json, test_metrics.json, split_sizes.json
-
+    # FINISHED: load the best model state
+    model.load_state_dict(torch.load(os.path.join(exper_folder, "best_model.pt"), map_location=device))
+    
+    # FINISHED: evaluate on the test set
+    test_mean_loss, test_metrics = run_one_epoch(model, test_loader, criterion, optimizer, device, False)
+    print(f"\nTest Results:")
+    print(f" -   test_mean_loss = {test_mean_loss}")
+    print(f" -   test_metrics   = {test_metrics}")
+    
+    # FINISHED: save best_model.pt, history.json, test_metrics.json, split_sizes.json
+    torch.save(model.state_dict(), os.path.join(exper_folder, f"{exper_folder}_best_model"))
+    
+    with open(os.path.join(exper_folder, "history.json"), "w") as f:
+        json.dump(history, f, indent = 4)
+        
+    with open(os.path.join(exper_folder, "test_metrics.json"), "w") as f:
+        json.dump(test_metrics, f, indent = 4)
+        
+    split_sizes = {
+        "train": len(train_df),
+        "val":   len(val_df),
+        "test":  len(test_df)}
+    with open(os.path.join(exper_folder, "split_sizes.json"), "w") as f:
+        json.dump(split_sizes, f, indent = 4)
+    
 
 if __name__ == '__main__':
     main()
