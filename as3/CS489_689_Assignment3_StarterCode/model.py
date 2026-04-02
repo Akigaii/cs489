@@ -53,5 +53,10 @@ class ModelM2(nn.Module):
 
 
 def build_model(model_name: str) -> nn.Module:
-    # TODO: return the correct model object for M1 or M2
-    raise NotImplementedError
+    # FINISHED: return the correct model object for M1 or M2
+    if model_name == "M1":
+        return ModelM1
+    elif model_name == "M2":
+        return ModelM2
+    else:
+        raise Exception("Error: Invalid model_name")

@@ -66,20 +66,20 @@ def split_dataframe(df, train_ratio, val_ratio, test_ratio, seed, stratified):
     y = df['label_num']
     
     X_train, X_temp, y_train, y_temp = train_test_split(
-        X, y, 
-        test_size = train_ratio, 
-        random_state = seed
-        # stratify = stratified
+        X, y,
+        test_size = val_ratio + test_ratio,
+        random_state = seed,
+        stratify = y if stratified else None
     )
     
     # 3) split temp into validation and test
     X_val, X_test, y_val, y_test = train_test_split(
         X_temp, y_temp,
-        test_size = 1 - (val_ratio / (val_ratio + test_ratio)),
-        random_state = seed
-        # stratify=stratify_temp
+        test_size = test_ratio / (val_ratio + test_ratio),
+        random_state = seed,
+        stratify = y_temp if stratified else None
     )
-    
+        
     return X_train, X_val, X_test, y_train, y_val, y_test
     
     
@@ -94,26 +94,49 @@ def make_loaders(args, train_df, val_df, test_df):
     test_ds = BreastCancerDataset(test_df, args.image_dir, args.image_size)
 
     # FINISHED: create train, validation, and test dataloaders
-    train_loader = DataLoader(train_ds, shuffle = True)
-    val_loader = DataLoader(val_ds, shuffle = True)
-    test_loader = DataLoader(test_ds, shuffle = True)
+    train_loader = DataLoader(train_ds, batch_size = args.batch_size, shuffle = True, num_workers = args.num_workers)
+    val_loader = DataLoader(val_ds, batch_size = args.batch_size, shuffle = True, num_workers = args.num_workers)
+    test_loader = DataLoader(test_ds, batch_size = args.batch_size, shuffle = True, num_workers = args.num_workers)
     return train_loader, val_loader, test_loader
 
 
 def main():
     args = get_args()
 
-    # TODO: set seed and choose device
+    # FINISHED: set seed and choose device
+    set_seed(args.seed)
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+    
 
-    # TODO: read the CSV and prepare label_num
-    # TODO: split the dataframe
-    # TODO: create the dataloaders
+    # FINISHED: read the CSV and prepare label_num
+    df = prepare_dataframe(args.csv_path, args.positive_label)
+    
+    # FINISHED: split the dataframe
+    X_train, X_val, X_test, y_train, y_val, y_test = split_dataframe(df, args.train_ratio, args.val_ratio, args.test_ratio, args.seed, args.stratified_split)
+    
+    # FINISHED: create the dataloaders
+    train_df = pd.DataFrame({'case_id': X_train, 'label_num': y_train})
+    val_df   = pd.DataFrame({'case_id': X_val,   'label_num': y_val})
+    test_df  = pd.DataFrame({'case_id': X_test,  'label_num': y_test})
+    train_loader, val_loader, test_loader = make_loaders(args, train_df, val_df, test_df)
 
-    # TODO: build model, criterion, and optimizer
-
-    # TODO: create an experiment folder name
+    # FINISHED: build model, criterion, and optimizer
+    model = build_model(args.model_name).to(device)
+    criterion = build_criterion(args.loss_name, args.minority_weight, args.majority_weight, args.gamma)
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr = args.lr,
+        weight_decay = args.weight_decay
+    )
+    
+    # FINISHED: create an experiment folder name
     # Suggested format: M1_bce or M2_focal_w3.0
-
+    os.makedirs("M1_bce", exist_ok = True)
+    os.makedirs("M2_focal_w3.0", exist_ok = True)
+    
     best_val_auroc = -1.0
     best_state = None
     patience_counter = 0
