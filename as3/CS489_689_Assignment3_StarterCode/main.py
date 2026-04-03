@@ -189,7 +189,7 @@ def main():
     print(f" -   test_metrics   = {test_metrics}")
     
     # FINISHED: save best_model.pt, history.json, test_metrics.json, split_sizes.json
-    torch.save(model.state_dict(), os.path.join(exper_folder, f"{exper_folder}_best_model"))
+    torch.save(model.state_dict(), os.path.join(exper_folder, f"{exper_folder}_best_model.pt"))
     
     with open(os.path.join(exper_folder, "history.json"), "w") as f:
         json.dump(history, f, indent = 4)
