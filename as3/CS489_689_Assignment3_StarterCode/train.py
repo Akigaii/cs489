@@ -89,9 +89,9 @@ def run_one_epoch(model, loader, criterion, optimizer, device, train: bool = Tru
 
             # FINISHED: convert logits to probabilities and store probabilities/targets
             probs = torch.sigmoid(logits)
-            probs = probs.detach().numpy()
+            probs = probs.detach().cpu().numpy()
             all_probs.extend(probs)
-            all_targets.extend(targets.numpy())
+            all_targets.extend(targets.cpu().numpy())
             losses.append(loss.item())
 
     # FINISHED: compute mean loss and metric dictionary

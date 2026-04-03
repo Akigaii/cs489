@@ -135,6 +135,9 @@ def main():
     # FINISHED: create an experiment folder name
     # Suggested format: M1_bce or M2_focal_w3.0
     exper_folder = f"{args.model_name}_{args.loss_name}"
+    if args.loss_name == "wbce" or args.loss_name == "focal":
+        exper_folder = exper_folder + f"_w{args.minority_weight}" 
+    print(exper_folder)
     os.makedirs(exper_folder, exist_ok = True)
     
     best_val_auroc = -1.0
@@ -166,7 +169,7 @@ def main():
         if current_auroc > best_val_auroc:
             print("\nNew best model found!")
             # print(f"Prev AUROC: {best_val_auroc},   New AUROC: {current_auroc}")
-            torch.save(model.state_dict(), os.path.join(exper_folder, f"{exper_folder}_best_model"))
+            torch.save(model.state_dict(), os.path.join(exper_folder, f"{exper_folder}_best_model.pt"))
             best_val_auroc = current_auroc
             patience_counter = 0
         else:
@@ -177,7 +180,7 @@ def main():
             break
 
     # FINISHED: load the best model state
-    model.load_state_dict(torch.load(os.path.join(exper_folder, "best_model.pt"), map_location=device))
+    model.load_state_dict(torch.load(os.path.join(exper_folder, f"{exper_folder}_best_model.pt"), map_location="cpu"))
     
     # FINISHED: evaluate on the test set
     test_mean_loss, test_metrics = run_one_epoch(model, test_loader, criterion, optimizer, device, False)
@@ -204,3 +207,16 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M1 --loss_name bce
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M1 --loss_name wbce
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M1 --loss_name focal
+
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M1 --loss_name bce
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M2 --loss_name wbce
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M2 --loss_name focal
+
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M1 --loss_name wbce --minority_weight 3.0
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M1 --loss_name focal --minority_weight 3.0
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M2 --loss_name wbce --minority_weight 3.0
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M2 --loss_name focal --minority_weight 3.0
