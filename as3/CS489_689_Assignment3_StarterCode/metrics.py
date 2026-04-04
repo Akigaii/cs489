@@ -51,6 +51,7 @@ def compute_metrics(y_true: np.ndarray, y_prob: np.ndarray, threshold: float = 0
         # Additional metrics I need for figures.py
         "confusion_matrix": matrix.tolist(),
         "y_true": y_true.tolist(),
+        "y_prob": y_prob.tolist(),
         "y_pred": y_pred.tolist()
     }
     
