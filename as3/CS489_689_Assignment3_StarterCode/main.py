@@ -198,9 +198,13 @@ def main():
         json.dump(test_metrics, f, indent = 4)
         
     split_sizes = {
-        "train": len(train_df),
-        "val":   len(val_df),
-        "test":  len(test_df)}
+        "train":      train_df["case_id"].tolist(),
+        "val":        val_df["case_id"].tolist(),
+        "test":       test_df["case_id"].tolist(),
+        "train_size": len(train_df),
+        "val_size":   len(val_df),
+        "test_size":  len(test_df)
+        }
     with open(os.path.join(exper_folder, "split_sizes.json"), "w") as f:
         json.dump(split_sizes, f, indent = 4)
     

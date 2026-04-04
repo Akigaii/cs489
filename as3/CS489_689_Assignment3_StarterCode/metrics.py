@@ -47,7 +47,11 @@ def compute_metrics(y_true: np.ndarray, y_prob: np.ndarray, threshold: float = 0
         "f1": f1_score(y_true, y_pred),
         "auroc": roc_auc_score(y_true, y_prob),
         "auprc": average_precision_score(y_true, y_prob),
-        "specificity": specificity
+        "specificity": specificity,
+        # Additional metrics I need for figures.py
+        "confusion_matrix": matrix.tolist(),
+        "y_true": y_true.tolist(),
+        "y_pred": y_pred.tolist()
     }
     
     return metrics
