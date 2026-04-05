@@ -198,9 +198,9 @@ def main():
         json.dump(test_metrics, f, indent = 4)
         
     split_sizes = {
-        "train":      train_df["case_id"].tolist(),
-        "val":        val_df["case_id"].tolist(),
-        "test":       test_df["case_id"].tolist(),
+        "train_ids":  train_df["case_id"].tolist(),
+        "val_ids":    val_df["case_id"].tolist(),
+        "test_ids":   test_df["case_id"].tolist(),
         "train_size": len(train_df),
         "val_size":   len(val_df),
         "test_size":  len(test_df)
@@ -216,7 +216,7 @@ if __name__ == '__main__':
 # python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M1 --loss_name wbce
 # python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M1 --loss_name focal
 
-# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M1 --loss_name bce
+# python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M2 --loss_name bce
 # python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M2 --loss_name wbce
 # python main.py --csv_path C:\Users\aigaui\cs489\as3\Assignment2_Dataset\dataset.csv --image_dir C:\Users\aigaui\cs489\as3\Assignment2_Dataset\images --model_name M2 --loss_name focal
 
